@@ -57,7 +57,7 @@ def map_to_object(m, cls):
                 return cls._property_map[varname]
         return TintriObject
 
-    if type(m) == types.DictionaryType:
+    if type(m) == dict:
         o = cls()
         
         ignoresetattr = None
@@ -73,7 +73,7 @@ def map_to_object(m, cls):
             o._ignoresetattr = ignoresetattr
             
         return o
-    elif type(m) == types.ListType:
+    elif type(m) == list:
         objects = []
         for obj in m:
             objects.append(map_to_object(obj, cls))
@@ -110,7 +110,7 @@ def dump_object(obj, level=0, name='', logger=None):
 
     if obj == None:
         logger.info(" " * level + "%s[None]: None", name)
-    elif type(obj) in [types.ListType, types.TupleType]:
+    elif type(obj) in [list, tuple]:
         if len(obj) == 0:
             logger.info(" " * level + "%s[%s]: []", name, type(obj).__name__)
         else:
@@ -128,7 +128,7 @@ def dump_object(obj, level=0, name='', logger=None):
                     dump_object(value, level=level + 4, name=key, logger=logger)
             logger.info(" " * level + "}")
     else:
-        logger.info(" " * level + "%s[%s]: %s", name, type(obj).__name__, `obj`)
+        logger.info(" " * level + "%s[%s]: %s", name, type(obj).__name__, repr(obj))
 
     #    if level == 0:
     #    print " " * level + '<' * 41

@@ -607,7 +607,7 @@ class TintriBase(object):
             try:
                 json_error = json.loads(httpresp.text)
             except Exception as e:
-                raise TintriServerError(httpresp.status_code, None, cause=`e`, details=err)
+                raise TintriServerError(httpresp.status_code, None, cause=repr(e), details=err)
             raise TintriAuthenticationError(json_error['code'], json_error['message'], json_error['causeDetails'])
 
         self.__session_id = httpresp.cookies['JSESSIONID']
@@ -649,7 +649,7 @@ class TintriBase(object):
             try:
                 json_error = json.loads(httpresp.text)
             except Exception as e:
-                raise TintriServerError(httpresp.status_code, None, cause=`e`, details=err)
+                raise TintriServerError(httpresp.status_code, None, cause=repr(e), details=err)
             raise TintriAuthenticationError(json_error['code'], json_error['message'], json_error['causeDetails'])
 
         self.__session_id = httpresp.cookies['JSESSIONID']
@@ -767,7 +767,7 @@ class TintriBase(object):
         '''
         #self.__logger.debug('method:%s pparams:%s qparams:%s rurl:%s' % (method, `path_params`, `query_params`, resource_url))
         # Puts tintri host, API version and any URL path parameters, query params in URL
-        if type(path_params) in [types.ListType, types.TupleType]:
+        if type(path_params) in [list, tuple]:
             localargs = list(path_params)
         else:
             localargs = [path_params]
@@ -799,7 +799,7 @@ class TintriBase(object):
         url = urltemplate % tuple([self.host, self.api_version] + localargs)
 
         try:
-            querystring = urllib.urlencode(query_params)
+            querystring = urllib.parse.urlencode(query_params)
             if querystring != '':
                 url = '%s?%s' % (url, querystring)
         except Exception as e:
@@ -813,13 +813,13 @@ class TintriBase(object):
 #             url = '%s?%s' % (url, querystring)
 
         jsondata = data
-        if not type(data) in types.StringTypes:
+        if not type(data) != str:
             jsondata = json.dumps(data, cls=TintriJSONEncoder)
     
         return method, url, jsondata
 
     def _json_object_to_object(self, json_object, entity_class, context={}):
-        if type(json_object) == types.DictionaryType:
+        if type(json_object) == dict:
             if hasattr(entity_class, '_is_paginated') and entity_class._is_paginated:
                 try:
                     if hasattr(self, '_process_page'):
@@ -830,7 +830,7 @@ class TintriBase(object):
                     return map_to_object(json_object, entity_class)
             else:
                 return map_to_object(json_object, entity_class)
-        elif type(json_object) == types.ListType:
+        elif type(json_object) == list:
             objects = []
             for obj in json_object:
                 objects.append(map_to_object(obj, entity_class))
@@ -853,7 +853,7 @@ class TintriBase(object):
 
     def _process_result(self, method, url, response, request_class, response_class, query_params, path_params):
         cls = response_class and response_class or request_class
-        if cls in [types.StringType, types.UnicodeType]: # if we expect string type result, no need for further processing
+        if cls == str or type(cls) == str: # if we expect string type result, no need for further processing
             return response.text
         else:
             # prepare context to hold url and data along with method to navigate pages
@@ -868,9 +868,9 @@ class TintriBase(object):
             raise TintriServerError(status_code, cause=e, message="Failed to decode result. url:%s status:%s error:%s data:%s" % (url, status_code, e, response_data))
         except Exception as e:
             self.__logger.warning("HTTP request failed. URL:%s Status Code:%s Error:%s Text:%s" % (url, status_code, e, response_data))
-            raise TintriServerError(status_code, None, cause=`e`, details=response_data)
+            raise TintriServerError(status_code, None, cause=repr(e), details=response_data)
 
-        if type(jsonError) == types.DictionaryType:
+        if type(jsonError) == dict:
             self.__logger.info('Server error. url:%s status:%s code:%s message:%s cause:%s' % (url, status_code, jsonError['code'], jsonError['message'], jsonError['causeDetails']))
             if status_code == 400:
                 raise TintriBadRequestError(jsonError['code'], jsonError['message'], jsonError['causeDetails'])

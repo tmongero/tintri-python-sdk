@@ -1,10 +1,9 @@
-#!/usr/bin/python
 import os
 
 from setuptools import setup, find_packages
 
 def read(fname):
-    return open(os.path.join(os.path.dirname(__file__), fname)).read()
+    return open(os.path.join(os.path.dirname(__file__), fname), 'r').read()
 
 setup(
     name='Tintri PySDK',
@@ -14,9 +13,9 @@ setup(
     author='Tintri',
     author_email='pysdk@tintri.com',
     license='BSD',
-    keywords='tintri python sdk',
+    keywords='tintri python3 sdk',
     url='http://hub.tintricity.com/discussions/automation',
-    packages=find_packages(exclude=["test", "tintri.test", "tintri.test.*", "tintri.v310.internal"]),
+    packages=find_packages(where=os.path.curdir, exclude=["test", "tintri.test", "tintri.test.*", "tintri.v310.internal"]),
     long_description=read('README'),
     classifiers=[
         'Development Status :: 5 - Production/Stable',

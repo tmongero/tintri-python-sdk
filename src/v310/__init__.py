@@ -374,7 +374,7 @@ class FilterSpec(TintriObject):
     def to_map(self):
         query_param = {}
         if hasattr(self, '__dict__'):
-            for k, v in self.__dict__.iteritems():
+            for k, v in self.__dict__.items():
                 if not self.__dict__[k] is None:
                     query_param[k] = v
         return query_param
@@ -490,7 +490,7 @@ class VirtualMachineQoSConfig(TintriObject):
             raise Exception("Parameter min_normalized_iops must be at least 0.")
         elif max_normalized_iops and max_normalized_iops < 0:
             raise Exception("Parameter max_normalized_iops must be at least 0.")
-        elif min_normalized_iops > max_normalized_iops:
+        elif min_normalized_iops and max_normalized_iops and min_normalized_iops > max_normalized_iops:
             raise Exception("Parameter min_normalized_iops cannot be greater than max_normalized_iops.")
         else:
             super(VirtualMachineQoSConfig, self).__init__()
@@ -833,7 +833,7 @@ def _get_request_object(attributes_d, attributes_l, obj_class):
     # prepare object and fill in attributes
     obj = obj_class()
     request = Request()
-    for key, value in attributes_d.iteritems():
+    for key, value in attributes_d.items():
         setattr(obj, convert_to_camel_case(key, capitalize_first_letter=False), value)
 
     # prepare request
@@ -848,15 +848,15 @@ def _get_request_object(attributes_d, attributes_l, obj_class):
 # Anytime resource is added/updated, keep the decorated apis consistent
 def api(func=None, filter_class=None, target="all", version="all"):
     def is_plural(func):
-        if not func.func_name.endswith('s'):
+        if not func.__name__.endswith('s'):
             return False
 
-        resource = "_".join(func.func_name.split("_")[1:])
+        resource = "_".join(func.__name__.split("_")[1:])
         resource = convert_to_camel_case(resource)
-        if resource not in func.func_globals:
+        if resource not in func.__globals__:
             return True
         
-        resource_class = func.func_globals[resource]
+        resource_class = func.__globals__[resource]
         if hasattr(resource_class, '_ignore_plural') and resource_class._ignore_plural:
             return False
 
@@ -867,22 +867,22 @@ def api(func=None, filter_class=None, target="all", version="all"):
             if func_name in ["get_appliance_timezones"]:
                 return None
             obj_str = convert_to_camel_case("_".join(func_name.split("_")[1:]))
-            return func.func_globals[obj_str]
+            return func.__globals__[obj_str]
 
     def get_op(func):
-        if func.func_name.startswith('get'):
+        if func.__name__.startswith('get'):
             if is_plural(func):
-                return 'get_all', func.func_name[:-1]
+                return 'get_all', func.__name__[:-1]
             else:
-                return 'get_one', func.func_name
-        elif func.func_name.startswith('create'):
-            return 'create', func.func_name
-        elif func.func_name.startswith('delete'):
-            return 'delete', func.func_name
-        elif func.func_name.startswith('update'):
-            return 'update', func.func_name
+                return 'get_one', func.__name__
+        elif func.__name__.startswith('create'):
+            return 'create', func.__name__
+        elif func.__name__.startswith('delete'):
+            return 'delete', func.__name__
+        elif func.__name__.startswith('update'):
+            return 'update', func.__name__
         else:
-            raise TintriError("Unknown API operation: %s" % func.func_name)
+            raise TintriError("Unknown API operation: %s" % func.__name__)
 
     def wrap(func):
         def verify_filter(api_filter, filter_class):
@@ -900,15 +900,15 @@ def api(func=None, filter_class=None, target="all", version="all"):
                 raise TintriError("Unsupported API, please check API minimum version")
 
         def is_generated_function(func, tintri_obj):
-            if len(tintri_obj._generated_function.func_code.co_code) == len(tintri_obj._generated_function_with_doc.func_code.co_code):
-                if len(func.func_code.co_code) == len(tintri_obj._generated_function.func_code.co_code):
-                    return func.func_code.co_code == tintri_obj._generated_function.func_code.co_code or func.func_code.co_code == tintri_obj._generated_function_with_doc.func_code.co_code
+            if len(tintri_obj._generated_function.__code__.co_code) == len(tintri_obj._generated_function_with_doc.__code__.co_code):
+                if len(func.__code__.co_code) == len(tintri_obj._generated_function.__code__.co_code):
+                    return func.__code__.co_code == tintri_obj._generated_function.__code__.co_code or func.__code__.co_code == tintri_obj._generated_function_with_doc.__code__.co_code
                 return False
             else:
-                if len(func.func_code.co_code) == len(tintri_obj._generated_function.func_code.co_code):
-                    return func.func_code.co_code == tintri_obj._generated_functiontion.func_code.co_code
-                elif len(func.func_code.co_code) == len(tintri_obj._generated_function_with_doc.func_code.co_code):
-                    return func.func_code.co_code == tintri_obj._generated_function_with_doc.func_code.co_code
+                if len(func.__code__.co_code) == len(tintri_obj._generated_function.__code__.co_code):
+                    return func.__code__.co_code == tintri_obj._generated_functiontion.__code__.co_code
+                elif len(func.__code__.co_code) == len(tintri_obj._generated_function_with_doc.__code__.co_code):
+                    return func.__code__.co_code == tintri_obj._generated_function_with_doc.__code__.co_code
                 return False
 
         def is_property_updateable(key, value, data):
@@ -982,7 +982,7 @@ def api(func=None, filter_class=None, target="all", version="all"):
                         # prepare request
                         request.objectsWithNewValues = [data]
                         request.propertiesToBeUpdated = []
-                        for key, value in data.__dict__.iteritems():
+                        for key, value in data.__dict__.items():
                             # ignore None, ID and UUID keys; ignore name key for FileShare
                             if is_property_updateable(key, value, data):
                                 request.propertiesToBeUpdated.append(key)
@@ -1093,13 +1093,13 @@ def api(func=None, filter_class=None, target="all", version="all"):
         def decorator(func):
             if not func.__doc__ and not 'internal' in func.__module__:
                 func.__doc__ = get_method_doc_string(func)
-            TintriBase.method_registry[func.func_name] = func
+            TintriBase.method_registry[func.__name__] = func
             return wrap(func)
         return decorator
 
     if not func.__doc__ and not 'internal' in func.__module__:
         func.__doc__ = get_method_doc_string(func)
-    TintriBase.method_registry[func.func_name] = func
+    TintriBase.method_registry[func.__name__] = func
 
     return wrap(func)
 
@@ -1192,7 +1192,7 @@ class Tintri(TintriBase):
         Returns:
             str: URL to retrieve historic datastore statistics report
         """
-        return self._create(report_filter, path_params=[datastore_id], resource_url="datastore/%s/statsDownloadable", request_class=types.StringType)
+        return self._create(report_filter, path_params=[datastore_id], resource_url="datastore/%s/statsDownloadable", request_class=str)
 
     @api(target="vmstore", version="v310.41")
     def create_certificate(self, appliance_id):
@@ -1220,7 +1220,7 @@ class Tintri(TintriBase):
         Returns:
             str: URL to retrieve alert list report
         """
-        return self._create(report_filter, resource_url="alert/alertListDownloadable", request_class=types.StringType)
+        return self._create(report_filter, resource_url="alert/alertListDownloadable", request_class=str)
 
     @api(target="tgc")
     def get_alert_filter_scope(self):
@@ -1465,7 +1465,7 @@ class Tintri(TintriBase):
         else:
             url = "datastore/%s/replicationPath/test"
         self._update(_get_request_object(locals(), ["self", "datastore_id"], TestReplicationPath),
-                     path_params = [datastore_id], resource_url=url, request_class=types.StringType)
+                     path_params = [datastore_id], resource_url=url, request_class=str)
 
     @api(target="vmstore", version="v310.11")
     def test_smb_config(self, datastore_id, smb_config):
@@ -2292,7 +2292,7 @@ class Tintri(TintriBase):
         Returns:
             str: URL to retrieve license list report
         """
-        return self._create(license_report_filter, resource_url="license/licenseListDownloadable", request_class=types.StringType)
+        return self._create(license_report_filter, resource_url="license/licenseListDownloadable", request_class=str)
     
     @api(target="tgc")
     def get_replication_links(self):
@@ -2319,7 +2319,7 @@ class Tintri(TintriBase):
         Returns:
             str: URL to retrieve service group list report
         """
-        return self._create(report_filter, resource_url="servicegroup/svgListDownloadable", request_class=types.StringType)
+        return self._create(report_filter, resource_url="servicegroup/svgListDownloadable", request_class=str)
     
     @api(target="tgc")
     def update_high_priority_service_group(self, service_group_id, request):
@@ -2475,7 +2475,7 @@ class Tintri(TintriBase):
         Returns:
             str: URL to the report
         """
-        return self._create(report_filter, resource_url="vm/vmListDownloadable", request_class=types.StringType)
+        return self._create(report_filter, resource_url="vm/vmListDownloadable", request_class=str)
     
     @api(target="tgc", version="v310.51")
     def update_vm_affinity(self, affinity, vm_id):
@@ -2504,7 +2504,7 @@ class Tintri(TintriBase):
         Returns:
             str: URL to the report
         """
-        return self._create(report_filter, path_params=[vm_id], resource_url="vm/%s/statsDownloadable", request_class=types.StringType)
+        return self._create(report_filter, path_params=[vm_id], resource_url="vm/%s/statsDownloadable", request_class=str)
     
     @api(target="tgc")
     def add_vmstore(self, vmstore):
@@ -2534,7 +2534,7 @@ class Tintri(TintriBase):
         Returns:
             str: URL to the report
         """
-        return self._create(report_filter, resource_url="vmstore/vmstoreListDownloadable", request_class=types.StringType)
+        return self._create(report_filter, resource_url="vmstore/vmstoreListDownloadable", request_class=str)
     
     @api(target="tgc", version="v310.51")
     def create_vmpool_list_report(self, report_filter):
@@ -2549,7 +2549,7 @@ class Tintri(TintriBase):
         Returns:
             str: URL to the report
         """
-        return self._create(report_filter, resource_url="vmstorePool/vmPoolListDownloadable", request_class=types.StringType)
+        return self._create(report_filter, resource_url="vmstorePool/vmPoolListDownloadable", request_class=str)
 
     @api(target="tgc", version="v310.51")
     def update_vmstore_pool_members(self, vmstore_pool_id, request):

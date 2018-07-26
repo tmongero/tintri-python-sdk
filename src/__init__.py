@@ -38,5 +38,5 @@ __version__ = '1.0'
 
 __all__ = ['TintriError', 'TintriServerError', 'TintriAuthenticationError', 'TintriAuthorizationError', 'TintriObject', 'TintriEntity', 'Version']
 
-from common import TintriError, TintriServerError, TintriAuthenticationError, TintriAuthorizationError, TintriObject, TintriEntity, Version, TINTRI_LOG_LEVEL_DATA
-from utils import dump_object
+from .common import TintriError, TintriServerError, TintriAuthenticationError, TintriAuthorizationError, TintriObject, TintriEntity, Version, TINTRI_LOG_LEVEL_DATA
+from .utils import dump_object

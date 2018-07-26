@@ -1,7 +1,7 @@
 # Tintri Python SDK
 A Python SDK (PySDK) for integrating with Tintri's REST APIs.
 
-Currently only works with Python 2.7
+Currently works with Python 3.7
 
 ## Documentation ##
 The PySDK documentation is located [here](https://tintri.github.io/tintri-python-sdk/index.html).
